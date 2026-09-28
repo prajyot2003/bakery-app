@@ -1,4 +1,4 @@
-# Golden Crust Bakery
+ # Golden Crust Bakery
 
 A SwiftUI bakery app for iOS 27, backed by Firebase. Browse baked goods, add them to a cart that follows you across devices, and read recipes.
 
