@@ -1,0 +1,60 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: carts
+// Document ID: the owner's Firebase Auth uid
+// Fields:
+//   - items: map<string, int> (required) - SKU -> quantity. Keys must be a
+//            catalog SKU (see validSkus); values are ints 1..99.
+//   - updatedAt: timestamp (required) - must equal server time of the write.
+//
+// Everything else is denied.
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // Keep in sync with Catalog.products in Bakery/Catalog.swift.
+    function validSkus() {
+      return ['BRD-001', 'BRD-002', 'BRD-003',
+              'PAS-001', 'PAS-002', 'PAS-003', 'PAS-004',
+              'CAK-001', 'CAK-002', 'CAK-003',
+              'CKE-001', 'CKE-002', 'CKE-003',
+              'DRK-001'];
+    }
+
+    function okQty(items, sku) {
+      return !(sku in items) || (items[sku] is int && items[sku] >= 1 && items[sku] <= 99);
+    }
+
+    // Rules can't loop over map values, so each SKU is checked explicitly.
+    function validQuantities(items) {
+      return okQty(items, 'BRD-001') && okQty(items, 'BRD-002') && okQty(items, 'BRD-003')
+          && okQty(items, 'PAS-001') && okQty(items, 'PAS-002') && okQty(items, 'PAS-003')
+          && okQty(items, 'PAS-004') && okQty(items, 'CAK-001') && okQty(items, 'CAK-002')
+          && okQty(items, 'CAK-003') && okQty(items, 'CKE-001') && okQty(items, 'CKE-002')
+          && okQty(items, 'CKE-003') && okQty(items, 'DRK-001');
+    }
+
+    function isValidCart(data) {
+      return data.keys().hasAll(['items', 'updatedAt'])
+          && data.keys().hasOnly(['items', 'updatedAt'])
+          && data.items is map
+          && data.items.keys().hasOnly(validSkus())
+          && validQuantities(data.items)
+          && data.updatedAt == request.time;
+    }
+
+    match /carts/{uid} {
+      allow read, delete: if isOwner(uid);
+      allow create, update: if isOwner(uid) && isValidCart(request.resource.data);
+    }
+  }
+}

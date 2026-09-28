@@ -1,0 +1,6 @@
+xcuserdata/
+DerivedData/
+.DS_Store
+*.log
+.firebase/
+node_modules/

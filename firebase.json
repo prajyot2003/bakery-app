@@ -1,0 +1,18 @@
+{
+  "auth": {
+    "providers": {
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Golden Crust Bakery",
+        "supportEmail": "prajyotkumar2003@gmail.com"
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json",
+    "edition": "enterprise",
+    "database": "bakery",
+    "location": "asia-south1"
+  }
+}
